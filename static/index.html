@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Chat AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>YouTube Chat AI</h1>
+            <p class="subtitle">Ask questions about any YouTube video</p>
+        </header>
+
+        <!-- Video URL Input Section -->
+        <div class="video-section" id="videoSection">
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="videoUrl"
+                    placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=...)"
+                    class="video-input"
+                />
+                <button id="loadVideoBtn" class="btn btn-primary">
+                    Load Video
+                </button>
+            </div>
+            <div id="videoStatus" class="status-message"></div>
+        </div>
+
+        <!-- Chat Section (Hidden until video is loaded) -->
+        <div class="chat-section" id="chatSection" style="display: none;">
+            <div class="video-info" id="videoInfo">
+                <span id="videoIdDisplay"></span>
+                <button id="changeVideoBtn" class="btn-small">Change Video</button>
+            </div>
+
+            <div class="chat-container" id="chatContainer">
+                <div class="welcome-message">
+                    Video loaded! Ask me anything about this video.
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="questionInput"
+                        placeholder="Ask a question about the video..."
+                        class="question-input"
+                    />
+                    <button id="sendBtn" class="btn btn-primary">
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing video transcript...</p>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

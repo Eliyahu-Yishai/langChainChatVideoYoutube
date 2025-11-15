@@ -70,23 +70,52 @@ def build_rag_from_text(text: str):
     return rag_chain
 
 
-# -------- 4. Chat loop --------
+# -------- 4. Process video and create RAG chain --------
+def process_youtube_video(video_id: str):
+    """
+    Process a YouTube video and return a RAG chain for querying.
+    Returns (rag_chain, error_message).
+    If successful, rag_chain is not None and error_message is None.
+    If failed, rag_chain is None and error_message contains the error.
+    """
+    try:
+        transcript_text = get_youtube_transcript(video_id)
+    except Exception as e:
+        return None, f"Failed to download transcript: {str(e)}"
+
+    if not transcript_text.strip():
+        return None, "Transcript is empty or unavailable."
+
+    try:
+        rag_chain = build_rag_from_text(transcript_text)
+        return rag_chain, None
+    except Exception as e:
+        return None, f"Failed to build RAG chain: {str(e)}"
+
+
+# -------- 5. Query the RAG chain --------
+def query_rag_chain(rag_chain, question: str):
+    """
+    Query the RAG chain with a question.
+    Returns (answer, error_message).
+    """
+    try:
+        answer = rag_chain.invoke(question)
+        return answer, None
+    except Exception as e:
+        return None, f"Error while querying: {str(e)}"
+
+
+# -------- 6. CLI Chat loop (original functionality) --------
 def chat_over_youtube(video_id: str):
     print(f"🎥 Building RAG for YouTube video: {video_id}")
     print("Downloading transcript...")
 
-    try:
-        transcript_text = get_youtube_transcript(video_id)
-    except Exception as e:
-        print("Failed to download transcript:", e)
+    rag_chain, error = process_youtube_video(video_id)
+    if error:
+        print(error)
         return
 
-    if not transcript_text.strip():
-        print("Transcript is empty or unavailable.")
-        return
-
-    print("Transcript downloaded. Building vector store...")
-    rag_chain = build_rag_from_text(transcript_text)
     print("✅ Ready!")
     print("Ask anything about this YouTube video.")
     print("Type 'exit' to quit.\n")
@@ -98,10 +127,9 @@ def chat_over_youtube(video_id: str):
             print("Goodbye!")
             break
 
-        try:
-            answer = rag_chain.invoke(question)
-        except Exception as e:
-            print("Error while querying RAG:", e)
+        answer, error = query_rag_chain(rag_chain, question)
+        if error:
+            print("Error:", error)
             continue
 
         print("AI:", answer)
