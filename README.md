@@ -14,4 +14,7 @@
  1. create fastApi.py file
  2. uvicorn fastApi:app --reload
 
+ run py file:
+ python <file name>.py
+
   
