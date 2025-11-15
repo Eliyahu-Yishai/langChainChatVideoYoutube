@@ -6,4 +6,12 @@
  pip install transformers
  pip install langchain 
  pip install langchain-openai python-dotenv      
- pip install langchain-core       
+ pip install langchain-core     
+ pip install fastapi uvicorn langchain-openai langchain-core python-dotenv
+
+2.
+ run fastapi:
+ 1. create fastApi.py file
+ 2. uvicorn fastApi:app --reload
+
+  
