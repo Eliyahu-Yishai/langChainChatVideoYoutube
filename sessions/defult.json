@@ -1,0 +1,14 @@
+[
+  {
+    "role": "system",
+    "content": "You are a friendly personal assistant. Answer briefly and clearly."
+  },
+  {
+    "role": "user",
+    "content": "what my work?"
+  },
+  {
+    "role": "assistant",
+    "content": "I don't have information about your specific job. Could you please provide more details about your work?"
+  }
+]
