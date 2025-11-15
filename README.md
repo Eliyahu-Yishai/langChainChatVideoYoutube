@@ -18,3 +18,6 @@
  python <file name>.py
 
   
+
+  rgbYoutube
+  run: pip install youtube-transcript-api
