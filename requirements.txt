@@ -1,0 +1,20 @@
+# Core Framework
+fastapi==0.121.1
+uvicorn==0.38.0
+python-dotenv==1.2.1
+
+# LangChain
+langchain==1.0.5
+langchain-openai==1.0.2
+langchain-community==0.4.1
+langchain-core==1.0.4
+langchain-text-splitters==1.0.0
+
+# Vector Store
+chromadb==1.3.4
+
+# YouTube Transcript
+youtube-transcript-api==1.2.3
+
+# Other Dependencies
+pydantic==2.12.4
