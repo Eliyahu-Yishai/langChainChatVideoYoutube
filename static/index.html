@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,15 +16,15 @@
 
         <!-- Video URL Input Section -->
         <div class="video-section" id="videoSection">
-            <div class="input-group">
-                <input
-                    type="text"
-                    id="videoUrl"
-                    placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=...)"
-                    class="video-input"
-                />
+            <div id="videoInputsContainer" class="video-inputs-container">
+                <!-- Dynamic inputs will be added here -->
+            </div>
+            <div class="button-group">
+                <button id="addInputBtn" class="btn btn-secondary">
+                    + Add Another Video
+                </button>
                 <button id="loadVideoBtn" class="btn btn-primary">
-                    Load Video
+                    Load Videos
                 </button>
             </div>
             <div id="videoStatus" class="status-message"></div>
@@ -32,13 +33,34 @@
         <!-- Chat Section (Hidden until video is loaded) -->
         <div class="chat-section" id="chatSection" style="display: none;">
             <div class="video-info" id="videoInfo">
-                <span id="videoIdDisplay"></span>
-                <button id="changeVideoBtn" class="btn-small">Change Video</button>
+                <div class="video-manager">
+                    <div class="video-manager-header">
+                        <span id="videoCountText" class="video-count">3 videos loaded</span>
+                        <button id="toggleManageBtn" class="btn-toggle-manage">Manage ▼</button>
+                    </div>
+                    <div class="loaded-videos-section">
+                        <div id="loadedVideosList" class="loaded-videos-list">
+                            <!-- Video items will be added here -->
+                        </div>
+                    </div>
+                    <div id="manageControls" class="manage-controls" style="display: none;">
+                        <div class="add-video-section">
+                            <input
+                                type="text"
+                                id="addVideoInput"
+                                placeholder="Paste YouTube URL to add another video..."
+                                class="add-video-input"
+                            />
+                            <button id="addVideoBtn" class="btn btn-add">+ Add</button>
+                        </div>
+                    </div>
+                </div>
+                <button id="changeVideoBtn" class="btn-small">Start Over</button>
             </div>
 
             <div class="chat-container" id="chatContainer">
                 <div class="welcome-message">
-                    Video loaded! Ask me anything about this video.
+                    Videos loaded! Ask me anything about these videos.
                 </div>
             </div>
 

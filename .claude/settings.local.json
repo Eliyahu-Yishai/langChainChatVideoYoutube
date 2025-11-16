@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(.venv/Scripts/python.exe:*)"
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(timeout:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill /F /PID 12364)",
+      "Bash(powershell -Command \"Stop-Process -Id 12364 -Force\")",
+      "Bash(ping:*)",
+      "Bash(nul)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []

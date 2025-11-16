@@ -5,17 +5,33 @@ from pydantic import BaseModel
 import re
 from typing import Optional
 
-from rgbYoutube import process_youtube_video, query_rag_chain
+from rgbYoutube import (
+    process_youtube_video,
+    process_multiple_youtube_videos,
+    add_video_to_existing,
+    remove_video_and_rebuild,
+    query_rag_chain
+)
 
 app = FastAPI(title="YouTube Chat AI")
 
-# In-memory storage for the current RAG chain
+# In-memory storage for the current RAG chain and transcripts
 # In production, you'd want to use proper session management
 current_rag_chain = None
+current_transcripts = {}  # Maps video_id -> transcript_text
+current_video_ids = []  # List of loaded video IDs in order
 
 
 class VideoRequest(BaseModel):
-    url: str
+    urls: list[str]  # Changed to support multiple URLs
+
+
+class AddVideoRequest(BaseModel):
+    url: str  # Single URL to add
+
+
+class RemoveVideoRequest(BaseModel):
+    video_id: str  # Video ID to remove
 
 
 class ChatRequest(BaseModel):
@@ -55,30 +71,151 @@ async def read_root():
 @app.post("/process-video")
 async def process_video(request: VideoRequest):
     """
-    Process a YouTube video URL and build the RAG chain
+    Process one or more YouTube video URLs and build a unified RAG chain
     """
-    global current_rag_chain
+    global current_rag_chain, current_transcripts, current_video_ids
 
-    video_id = extract_video_id(request.url)
-    if not video_id:
+    if not request.urls or len(request.urls) == 0:
         raise HTTPException(
             status_code=400,
-            detail="Invalid YouTube URL. Please provide a valid YouTube video link."
+            detail="Please provide at least one YouTube URL."
         )
 
-    # Process the video and build RAG chain
-    rag_chain, error = process_youtube_video(video_id)
+    # Extract video IDs from all URLs
+    video_ids = []
+    invalid_urls = []
 
-    if error:
-        raise HTTPException(status_code=500, detail=error)
+    for url in request.urls:
+        video_id = extract_video_id(url.strip())
+        if video_id:
+            video_ids.append(video_id)
+        else:
+            invalid_urls.append(url)
 
-    # Store the RAG chain for this session
+    if not video_ids:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No valid YouTube URLs found. Invalid URLs: {', '.join(invalid_urls)}"
+        )
+
+    # Process all videos and build unified RAG chain
+    rag_chain, successful_videos, failed_videos, transcripts_dict = process_multiple_youtube_videos(video_ids)
+
+    if rag_chain is None:
+        error_details = "; ".join([f"{v['video_id']}: {v['error']}" for v in failed_videos])
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process videos. Errors: {error_details}"
+        )
+
+    # Store the RAG chain and transcripts for this session
     current_rag_chain = rag_chain
+    current_transcripts = transcripts_dict
+    current_video_ids = successful_videos
 
     return {
         "success": True,
-        "message": f"Video processed successfully! (ID: {video_id})",
-        "video_id": video_id
+        "message": f"Processed {len(successful_videos)} video(s) successfully!",
+        "video_ids": successful_videos,
+        "failed_videos": failed_videos,
+        "invalid_urls": invalid_urls
+    }
+
+
+@app.post("/add-video")
+async def add_video(request: AddVideoRequest):
+    """
+    Add a single video to the existing session
+    """
+    global current_rag_chain, current_transcripts, current_video_ids
+
+    if current_rag_chain is None:
+        raise HTTPException(
+            status_code=400,
+            detail="No initial videos loaded. Please load videos first."
+        )
+
+    # Extract video ID from URL
+    video_id = extract_video_id(request.url.strip())
+    if not video_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid YouTube URL."
+        )
+
+    # Check if video already loaded
+    if video_id in current_video_ids:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Video {video_id} is already loaded."
+        )
+
+    # Add video to existing transcripts
+    rag_chain, success, error, updated_transcripts = add_video_to_existing(
+        current_transcripts, video_id
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to add video: {error}"
+        )
+
+    # Update session storage
+    current_rag_chain = rag_chain
+    current_transcripts = updated_transcripts
+    current_video_ids.append(video_id)
+
+    return {
+        "success": True,
+        "message": f"Video {video_id} added successfully!",
+        "video_id": video_id,
+        "video_ids": current_video_ids
+    }
+
+
+@app.post("/remove-video")
+async def remove_video(request: RemoveVideoRequest):
+    """
+    Remove a video from the existing session
+    """
+    global current_rag_chain, current_transcripts, current_video_ids
+
+    if current_rag_chain is None:
+        raise HTTPException(
+            status_code=400,
+            detail="No videos loaded."
+        )
+
+    video_id = request.video_id
+
+    if video_id not in current_video_ids:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Video {video_id} not found in session."
+        )
+
+    # Remove video and rebuild
+    rag_chain, updated_transcripts, error = remove_video_and_rebuild(
+        current_transcripts, video_id
+    )
+
+    if error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to remove video: {error}"
+        )
+
+    # Update session storage
+    current_rag_chain = rag_chain
+    current_transcripts = updated_transcripts
+    current_video_ids.remove(video_id)
+
+    return {
+        "success": True,
+        "message": f"Video {video_id} removed successfully!",
+        "video_id": video_id,
+        "video_ids": current_video_ids
     }
 
 
