@@ -22,7 +22,7 @@ def get_youtube_transcript(video_id: str) -> str:
     and return it as a single long text.
     """
     ytt_api = YouTubeTranscriptApi()
-    fetched = ytt_api.fetch(video_id, languages=['en'])  # אפשר גם ['he', 'en']
+    fetched = ytt_api.fetch(video_id, languages=['en', 'iw'])  
 
     # fetched הוא FetchedTranscript - אפשר ללכת על snippet.text
     lines = [snippet.text for snippet in fetched if snippet.text.strip()]
@@ -227,11 +227,3 @@ def chat_over_youtube(video_id: str):
 
         print("AI:", answer)
         print()
-
-
-if __name__ == "__main__":
-    # Example: replace with your own video ID
-    # For URL https://www.youtube.com/watch?v=ABC123XYZ  ->  video_id = "ABC123XYZ"
-    video_id = "lkIFF4maKMU"
-
-    chat_over_youtube(video_id)
